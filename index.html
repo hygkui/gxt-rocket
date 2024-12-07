@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GXT的火箭世界</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: white;
+            overflow-x: hidden;
+        }
+        .header {
+            background: linear-gradient(to bottom, #000033, #000066);
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .intro {
+            background-color: rgba(255,255,255,0.1);
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+            margin-top: 2rem;
+            backdrop-filter: blur(5px);
+        }
+        .rocket-container {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100vh;
+        }
+        .rocket {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 5rem;
+            opacity: 0;
+        }
+        .fire {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 40px;
+            background: linear-gradient(to bottom, #ff4d4d, #ff9933);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            opacity: 0;
+        }
+        .stars {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 0%, black 100%);
+            pointer-events: none;
+        }
+        .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+        }
+        .launch-button {
+            padding: 1rem 2rem;
+            font-size: 1.2rem;
+            background: linear-gradient(45deg, #ff4d4d, #ff9933);
+            border: none;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            margin-top: 2rem;
+            transition: transform 0.3s;
+            z-index: 100;
+        }
+        .launch-button:hover {
+            transform: scale(1.1);
+        }
+        @keyframes launch {
+            0% {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(-50%) translateY(-100vh);
+                opacity: 1;
+            }
+        }
+        @keyframes fire-animation {
+            0% {
+                height: 40px;
+                opacity: 1;
+            }
+            100% {
+                height: 60px;
+                opacity: 1;
+            }
+        }
+        .launching .rocket {
+            animation: launch 3s forwards;
+            opacity: 1;
+        }
+        .launching .fire {
+            animation: fire-animation 0.1s infinite alternate;
+            opacity: 1;
+        }
+        .student-info {
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+        .rockets-gallery {
+            margin-top: 3rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+        .rocket-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s;
+            cursor: pointer;
+        }
+        .rocket-card:hover {
+            transform: translateY(-10px);
+        }
+        .rocket-card img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+        .rocket-card h3 {
+            color: #ff9933;
+            margin-bottom: 0.5rem;
+        }
+        .rocket-card p {
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .music-control:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.2);
+        }
+        .music-icon {
+            font-size: 24px;
+            color: #ff9933;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div>
+    
+    <!-- 添加音乐控制按钮 -->
+    <div class="music-control" onclick="toggleMusic()" title="背景音乐">
+        <div class="music-icon">🎵</div>
+    </div>
+
+    <!-- 添加背景音乐 -->
+    <audio id="bgMusic" loop>
+        <source src="audio/pacific-rim.mp3" type="audio/mpeg">
+        <source src="audio/pacific-rim.ogg" type="audio/ogg">
+        <source src="audio/pacific-rim.wav" type="audio/wav">
+    </audio>
+
+    <!-- 保留原有的火箭音效 -->
+    <audio id="rocketSound" preload="auto">
+        <source src="audio/whoosh.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="header">
+        <h1>欢迎来到 GXT 的火箭世界</h1>
+        <button class="launch-button" onclick="launchRocket()">发射火箭！</button>
+        <div class="rocket-container">
+            <div class="rocket">🚀</div>
+            <div class="fire"></div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="intro">
+            <h2>关于我</h2>
+            <div class="student-info">
+                <p>大家好！我是 GXT，一名热爱火箭的小学生。</p>
+                <p>我对太空和火箭充满好奇，希望通过这个网站和大家分享我的兴趣！</p>
+            </div>
+        </div>
+
+        <div class="rockets-gallery">
+            <div class="rocket-card">
+                <img src="images/rocket1.png" alt="乐高火箭作品1">
+                <h3>阿波罗火箭</h3>
+                <p>这是我用乐高搭建的阿波罗系列火箭，灵感来自NASA的登月计划。</p>
+            </div>
+            
+            <div class="rocket-card">
+                <img src="images/rocket2.png" alt="乐高火箭作品2">
+                <h3>探索者号</h3>
+                <p>这是我设计的未来太空探索火箭，配备了先进的推进系统。</p>
+            </div>
+            
+            <div class="rocket-card">
+                <img src="images/rocket3.png" alt="乐高火箭作品3">
+                <h3>星际飞船</h3>
+                <p>这是我最新完成的作品，融合了火箭和飞船的设计理念。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 创建星星背景
+        function createStars() {
+            const stars = document.querySelector('.stars');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.opacity = Math.random();
+                stars.appendChild(star);
+            }
+        }
+
+        // 发射火箭
+        function launchRocket() {
+            const rocketContainer = document.querySelector('.rocket-container');
+            const rocketSound = document.getElementById('rocketSound');
+            
+            if (!rocketContainer.classList.contains('launching')) {
+                rocketContainer.classList.add('launching');
+                
+                // 播放音效
+                rocketSound.currentTime = 0;
+                rocketSound.volume = 0.8; // 调高一点音量
+                
+                try {
+                    rocketSound.play().catch(function(error) {
+                        console.log("播放火箭音效失败:", error);
+                    });
+                } catch (e) {
+                    console.log("播放音效出错:", e);
+                }
+                
+                // 3秒后重置动画
+                setTimeout(() => {
+                    rocketContainer.classList.remove('launching');
+                }, 3000);
+            }
+        }
+
+        // 添加音乐控制功能
+        let musicPlaying = false;
+        const bgMusic = document.getElementById('bgMusic');
+        bgMusic.volume = 0.3; // 设置背景音乐音量为30%
+
+        function toggleMusic() {
+            const musicIcon = document.querySelector('.music-icon');
+            if (musicPlaying) {
+                bgMusic.pause();
+                musicIcon.textContent = '🎵';
+            } else {
+                // 尝试播放音乐
+                const playPromise = bgMusic.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        musicIcon.textContent = '🎵';
+                        console.log("音乐开始播放");
+                    })
+                    .catch(error => {
+                        console.log("播放音乐失败:", error);
+                        // 显示错误信息给用户
+                        alert("音乐文件可能有问题，请确保音乐文件已正确放置在audio文件夹中");
+                    });
+                }
+            }
+            musicPlaying = !musicPlaying;
+        }
+
+        // 页面加载时检查音频文件
+        window.addEventListener('load', function() {
+            bgMusic.addEventListener('error', function(e) {
+                console.log("音频加载错误:", e);
+                const musicControl = document.querySelector('.music-control');
+                musicControl.style.display = 'none'; // 如果音频文件有问题，隐藏控制按钮
+            });
+            
+            // 由于浏览器策略，需要用户交互后才能自动播放
+            document.addEventListener('click', function startMusic() {
+                if (!musicPlaying && bgMusic.readyState >= 2) {  // 确保音频已经加载
+                    bgMusic.play().catch(function(error) {
+                        console.log("自动播放背景音乐失败:", error);
+                    });
+                    musicPlaying = true;
+                }
+                document.removeEventListener('click', startMusic);
+            }, { once: true });
+        });
+
+        // 页面加载时创建星星
+        window.addEventListener('load', createStars);
+    </script>
+</body>
+</html>
