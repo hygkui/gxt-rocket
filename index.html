@@ -14,26 +14,38 @@
             overflow-x: hidden;
         }
         .header {
-            background: linear-gradient(to bottom, #000033, #000066);
-            color: white;
-            text-align: center;
-            padding: 2rem;
-            position: relative;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
+    background: linear-gradient(to bottom, #000033, #000066);
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+    background: linear-gradient(to bottom, #000033, #000066);
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 20vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
         .header h1 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
             text-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+          max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: linear-gradient(to bottom, #000066, #000033);
+    min-height: calc(100vh - 80vh); /* 减去 footer 高度 */
+    margin-bottom: 80vh; /* 为 footer 腾出空间 */
         }
         .intro {
             background-color: rgba(255,255,255,0.1);
@@ -196,56 +208,49 @@
         <div class="music-icon">🎵</div>
     </div>
 
-    <!-- 添加背景音乐 -->
-    <audio id="bgMusic" loop>
-        <source src="audio/pacific-rim.mp3" type="audio/mpeg">
-        <source src="audio/pacific-rim.ogg" type="audio/ogg">
-        <source src="audio/pacific-rim.wav" type="audio/wav">
-    </audio>
-
     <!-- 保留原有的火箭音效 -->
     <audio id="rocketSound" preload="auto">
         <source src="audio/whoosh.mp3" type="audio/mpeg">
     </audio>
 
-    <div class="header">
-        <h1>欢迎来到 GXT 的火箭世界</h1>
-        <button class="launch-button" onclick="launchRocket()">发射火箭！</button>
-        <div class="rocket-container">
-            <div class="rocket">🚀</div>
-            <div class="fire"></div>
-        </div>
-    </div>
-    
     <div class="container">
-        <div class="intro">
-            <h2>关于我</h2>
-            <div class="student-info">
-                <p>大家好！我是 GXT，一名热爱火箭的小学生。</p>
-                <p>我对太空和火箭充满好奇，希望通过这个网站和大家分享我的兴趣！</p>
-            </div>
-        </div>
+      <div class="intro">
+          <h2>关于我</h2>
+          <div class="student-info">
+              <p>大家好！我是 GXT，一名热爱火箭的小学生。</p>
+              <p>我对太空和火箭充满好奇，希望通过这个网站和大家分享我的兴趣！</p>
+          </div>
+      </div>
 
-        <div class="rockets-gallery">
-            <div class="rocket-card">
-                <img src="images/rocket1.png" alt="乐高火箭作品1">
-                <h3>阿波罗火箭</h3>
-                <p>这是我用乐高搭建的阿波罗系列火箭，灵感来自NASA的登月计划。</p>
-            </div>
-            
-            <div class="rocket-card">
-                <img src="images/rocket2.png" alt="乐高火箭作品2">
-                <h3>探索者号</h3>
-                <p>这是我设计的未来太空探索火箭，配备了先进的推进系统。</p>
-            </div>
-            
-            <div class="rocket-card">
-                <img src="images/rocket3.png" alt="乐高火箭作品3">
-                <h3>星际飞船</h3>
-                <p>这是我最新完成的作品，融合了火箭和飞船的设计理念。</p>
-            </div>
-        </div>
-    </div>
+      <div class="rockets-gallery">
+          <div class="rocket-card">
+              <img src="images/1.png" alt="乐高火箭模型1">
+              <h3>乐高火箭模型1</h3>
+              <p>这是我用乐高搭建的火箭模型，灵感来自真实的火箭设计。</p>
+          </div>
+          
+          <div class="rocket-card">
+              <img src="images/2.png" alt="乐高火箭模型2">
+              <h3>乐高火箭模型2</h3>
+              <p>这是我设计的另一个乐高火箭模型，展示了更多的细节和创意。</p>
+          </div>
+          
+          <div class="rocket-card">
+              <img src="images/3.png" alt="乐高火箭模型3">
+              <h3>乐高火箭模型3</h3>
+              <p>这是我最新完成的乐高火箭模型，融合了现代科技和经典设计。</p>
+          </div>
+      </div>
+  </div>
+
+  <div class="header">
+      <h1>欢迎来到 GXT 的火箭世界</h1>
+      <button class="launch-button" onclick="launchRocket()">发射火箭！</button>
+      <div class="rocket-container">
+          <div class="rocket">🚀</div>
+          <div class="fire"></div>
+      </div>
+  </div>
 
     <script>
         // 创建星星背景
