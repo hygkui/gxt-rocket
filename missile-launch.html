@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导弹发射模拟器</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: white;
+            overflow: hidden; /* 隐藏所有滚动条 */
+            height: 100vh; /* 限制高度为视口高度 */
+            width: 100vw; /* 限制宽度为视口宽度 */
+            position: fixed; /* 防止页面滚动 */
+        }
+        
+        .header {
+            background: linear-gradient(to bottom, #000033, #000066);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 15vh; /* 减小高度以节省空间 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 1rem;
+            background: linear-gradient(to bottom, #000066, #000033);
+            height: 85vh; /* 高度为剩余空间 */
+            overflow-y: auto; /* 内容过多时允许内部滚动 */
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .missile-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        .missile {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0;
+            transition: transform 0.2s ease;
+            pointer-events: none;
+            z-index: 1001;
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+            transform-origin: center center;
+        }
+        
+        .missile img {
+            width: 60px;
+            height: auto;
+            filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.8));
+        }
+        
+        .missile-cover {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(255, 77, 77, 0.5);
+            z-index: 100;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 77, 77, 0.7);
+        }
+        
+        .missile-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .explosion {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, rgba(255,255,0,0.8) 0%, rgba(255,0,0,0.8) 50%, rgba(0,0,0,0) 100%);
+            border-radius: 50%;
+            animation: explode 0.5s forwards;
+            z-index: 1002;
+        }
+        
+        @keyframes explode {
+            0% {
+                transform: scale(0.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+        
+        .missile.active {
+            opacity: 1;
+        }
+        
+        .launch-button {
+            background: linear-gradient(to bottom, #ff3333, #cc0000);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 2rem;
+            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .launch-button:hover {
+            background: linear-gradient(to bottom, #ff6666, #ff0000);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255,0,0,0.8);
+        }
+        
+        .launch-button:active {
+            transform: scale(0.95);
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .nav-button {
+            background: linear-gradient(to bottom, #333366, #000033);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,0,255,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .nav-button:hover {
+            background: linear-gradient(to bottom, #4444aa, #222266);
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0,0,255,0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>导弹发射模拟器</h1>
+        <p>点击下方按钮发射导弹，导弹将跟随鼠标移动。当导弹接触屏幕边缘时，将会发生爆炸。</p>
+        <button id="launchButton" class="launch-button">发射导弹！</button>
+        
+        <div class="nav-buttons">
+            <a href="index.html" class="nav-button">返回导弹展示页</a>
+            <button id="resetButton" class="nav-button" style="margin-left: 10px;">重新发射</button>
+        </div>
+    </div>
+    
+    <div class="missile-container" id="missileContainer"></div>
+    
+    <audio id="launchSound" src="audio/rocket-launch.mp3" preload="auto"></audio>
+    <audio id="explosionSound" src="audio/whoosh.mp3" preload="auto"></audio>
+    
+    <script>
+        // 全局变量
+        let missileActive = false;
+        let mouseX = 0;
+        let mouseY = 0;
+        let missileElement = null;
+        let missileX = 0;
+        let missileY = 0;
+        let missileAngle = 0;
+        let animationFrameId = null;
+        let lastMouseX = 0; // 记录上一帧鼠标X位置
+        let lastMouseY = 0; // 记录上一帧鼠标Y位置
+        let selectedMissileType = ''; // 当前选择的导弹类型
+        let missileImagePath = ''; // 导弹图片路径
+        
+        // 获取DOM元素
+        const missileContainer = document.getElementById('missileContainer');
+        const launchButton = document.getElementById('launchButton');
+        const resetButton = document.getElementById('resetButton');
+        const launchSound = document.getElementById('launchSound');
+        const explosionSound = document.getElementById('explosionSound');
+        
+        // 获取URL参数
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+        
+        // 检查是否需要自动发射
+        function checkAutoLaunch() {
+            const autoLaunch = getUrlParameter('autolaunch');
+            if (autoLaunch === 'true') {
+                // 从 localStorage 获取导弹类型
+                selectedMissileType = localStorage.getItem('selectedMissileType') || 'strategic';
+                console.log('自动发射导弹类型:', selectedMissileType);
+                
+                // 获取导弹图片路径
+                missileImagePath = localStorage.getItem('missileImagePath') || `images/${selectedMissileType}.png`;
+                
+                // 更新页面标题
+                document.querySelector('h1').textContent = `${getMissileTypeName(selectedMissileType)}发射模拟器`;
+                
+                // 显示导弹封面图
+                displayMissileCover(missileImagePath);
+                
+                // 自动发射导弹
+                setTimeout(function() {
+                    launchButton.click();
+                }, 500);
+            }
+        }
+        
+        // 显示导弹封面图
+        function displayMissileCover(imagePath) {
+            // 创建封面图容器
+            const coverContainer = document.createElement('div');
+            coverContainer.className = 'missile-cover';
+            
+            // 创建图片元素
+            const coverImage = document.createElement('img');
+            coverImage.src = imagePath;
+            coverImage.alt = getMissileTypeName(selectedMissileType);
+            
+            // 添加到容器
+            coverContainer.appendChild(coverImage);
+            document.body.appendChild(coverContainer);
+        }
+        
+        // 获取导弹类型名称
+        function getMissileTypeName(type) {
+            const typeNames = {
+                'strategic': '战略导弹',
+                'cruise': '巡航导弹',
+                'antiair': '防空导弹'
+            };
+            return typeNames[type] || '导弹';
+        }
+        
+        // 监听鼠标移动
+        document.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            // 如果导弹活动中，直接更新导弹位置
+            if (missileActive && missileElement) {
+                missileElement.style.left = (mouseX - 15) + 'px';
+                missileElement.style.top = (mouseY - 15) + 'px';
+                
+                // 计算旋转角度
+                if (lastMouseX !== 0 && lastMouseY !== 0) {
+                    const dx = mouseX - lastMouseX;
+                    const dy = mouseY - lastMouseY;
+                    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) { // 防止微小移动引起旋转
+                        missileAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+                        missileElement.style.transform = `rotate(${missileAngle}deg)`;
+                    }
+                }
+                
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
+            }
+        });
+        
+        // 发射导弹
+        launchButton.addEventListener('click', function() {
+            // 如果已经有活动的导弹，先停止它
+            if (missileActive) {
+                missileActive = false;
+                if (missileElement) {
+                    missileElement.remove();
+                    missileElement = null;
+                }
+            }
+            
+            // 根据导弹类型更新标题
+            if (selectedMissileType) {
+                document.querySelector('h1').textContent = `${getMissileTypeName(selectedMissileType)}发射模拟器`;
+            }
+            
+            // 创建新的导弹元素
+            missileElement = document.createElement('div');
+            missileElement.className = 'missile active';
+            
+            // 使用图片而不是emoji
+            if (missileImagePath) {
+                const missileImg = document.createElement('img');
+                missileImg.src = missileImagePath;
+                missileImg.alt = getMissileTypeName(selectedMissileType);
+                missileElement.appendChild(missileImg);
+            } else {
+                missileElement.innerHTML = '💥'; // 使用爆炸图标作为备用
+            }
+            
+            missileContainer.appendChild(missileElement);
+            console.log('导弹已创建');
+            
+            // 初始位置直接设置为鼠标位置
+            missileX = mouseX;
+            missileY = mouseY;
+            missileElement.style.left = (missileX - 15) + 'px'; // 调整位置使其居中
+            missileElement.style.top = (missileY - 15) + 'px';
+            console.log('导弹初始位置:', missileX, missileY);
+            
+            // 播放音效
+            launchSound.currentTime = 0;
+            launchSound.play().catch(error => {
+                console.error('播放发射音效失败:', error);
+            });
+            
+            // 激活导弹
+            missileActive = true;
+            
+            // 开始动画
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animationFrameId = requestAnimationFrame(animateMissile);
+        });
+        
+        // 创建爆炸效果
+        function createExplosion(x, y) {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = (x - 40) + 'px'; // 调整位置使其居中
+            explosion.style.top = (y - 40) + 'px';
+            missileContainer.appendChild(explosion);
+            
+            // 播放爆炸音效
+            explosionSound.currentTime = 0;
+            explosionSound.play().catch(error => {
+                console.error('播放爆炸音效失败:', error);
+            });
+            
+            // 移除爆炸效果
+            setTimeout(() => {
+                explosion.remove();
+            }, 500);
+        }
+        
+        // 导弹动画
+        function animateMissile() {
+            if (!missileActive || !missileElement) return;
+            
+            // 计算导弹与鼠标之间的距离和角度
+            const dx = mouseX - missileX;
+            const dy = mouseY - missileY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const targetAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            // 平滑旋转导弹
+            const angleDiff = targetAngle - missileAngle;
+            missileAngle += angleDiff * 0.1;
+            
+            // 直接更新导弹位置为鼠标位置
+            missileX = mouseX;
+            missileY = mouseY;
+            
+            // 应用位置和旋转 - 精确跟随鼠标
+            missileElement.style.left = (mouseX - 15) + 'px'; // 直接跟随鼠标位置，偏移量为图标大小的一半
+            missileElement.style.top = (mouseY - 15) + 'px';
+            missileElement.style.transform = `rotate(${missileAngle}deg)`;
+            
+            // 检测是否接近边界
+            const margin = 50; // 增加边距，使导弹在达到边界前停止
+            
+            // 限制导弹位置，不允许超出边界
+            let hitBoundary = false;
+            let explosionX = mouseX;
+            let explosionY = mouseY;
+            
+            // 检查左边界
+            if (mouseX < margin) {
+                explosionX = margin;
+                hitBoundary = true;
+            }
+            // 检查右边界
+            else if (mouseX > window.innerWidth - margin) {
+                explosionX = window.innerWidth - margin;
+                hitBoundary = true;
+            }
+            
+            // 检查上边界
+            if (mouseY < margin) {
+                explosionY = margin;
+                hitBoundary = true;
+            }
+            // 检查下边界
+            else if (mouseY > window.innerHeight - margin) {
+                explosionY = window.innerHeight - margin;
+                hitBoundary = true;
+            }
+            
+            if (hitBoundary) {
+                // 在边界处触发爆炸效果
+                createExplosion(explosionX, explosionY);
+                
+                // 停止导弹移动，但不移除导弹
+                missileActive = false;
+                
+                // 在爆炸后使导弹隐藏
+                if (missileElement) {
+                    missileElement.style.opacity = '0';
+                }
+                return;
+            }
+            
+            // 继续动画
+            animationFrameId = requestAnimationFrame(animateMissile);
+        }
+        
+        // 重置按钮事件
+        resetButton.addEventListener('click', function() {
+            // 重新加载页面
+            window.location.reload();
+        });
+        
+        // 页面加载时创建星星并检查是否自动发射
+        window.addEventListener('load', function() {
+            // 创建星星背景
+            const stars = document.createElement('div');
+            stars.className = 'stars';
+            document.body.appendChild(stars);
+            
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.opacity = Math.random();
+                stars.appendChild(star);
+            }
+            
+            // 检查URL参数中是否有图片路径
+            const imgParam = getUrlParameter('img');
+            if (imgParam) {
+                missileImagePath = decodeURIComponent(imgParam);
+                console.log('从URL获取导弹图片路径:', missileImagePath);
+                displayMissileCover(missileImagePath);
+            }
+            
+            // 检查是否需要自动发射
+            checkAutoLaunch();
+        });
+    </script>
+</body>
+</html>

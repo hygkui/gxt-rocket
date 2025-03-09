@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GXT的火箭世界</title>
+    <title>GXT的导弹世界</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -11,23 +11,21 @@
             padding: 0;
             background-color: #000;
             color: white;
-            overflow-x: hidden;
+            overflow: hidden; /* 隐藏所有滚动条 */
+            height: 100vh; /* 限制高度为视口高度 */
+            width: 100vw; /* 限制宽度为视口宽度 */
+            position: fixed; /* 防止页面滚动 */
         }
         .header {
     background: linear-gradient(to bottom, #000033, #000066);
     color: white;
     text-align: center;
-    padding: 2rem;
-    position: relative;
-    background: linear-gradient(to bottom, #000033, #000066);
-    color: white;
-    text-align: center;
-    padding: 2rem;
+    padding: 1rem;
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 20vh;
+    height: 15vh; /* 减小高度以节省空间 */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -40,36 +38,47 @@
             text-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
         .container {
-          max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    background: linear-gradient(to bottom, #000066, #000033);
-    min-height: calc(100vh - 80vh); /* 减去 footer 高度 */
-    margin-bottom: 80vh; /* 为 footer 腾出空间 */
+          max-width: 100%;
+          margin: 0 auto;
+          padding: 1rem;
+          background: linear-gradient(to bottom, #000066, #000033);
+          height: 85vh; /* 高度为剩余空间 */
+          overflow-y: auto; /* 内容过多时允许内部滚动 */
+          position: relative;
+          z-index: 1;
         }
         .intro {
             background-color: rgba(255,255,255,0.1);
-            padding: 2rem;
+            padding: 1rem;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(255,255,255,0.1);
-            margin-top: 2rem;
+            margin-top: 0.5rem;
             backdrop-filter: blur(5px);
+            max-width: 100%;
         }
-        .rocket-container {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100px;
+        .missile-container {
+            position: fixed;
+            width: 100%;
             height: 100vh;
+            pointer-events: none;
+            z-index: 1000;
         }
-        .rocket {
+        .missile {
             position: absolute;
-            bottom: 10%;
-            left: 50%;
-            transform: translateX(-50%);
+            font-size: 3rem;
+            opacity: 0;
+            transition: transform 0.2s ease;
+            pointer-events: none;
+            z-index: 1001;
+            text-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+            transform-origin: center center;
+        }
+        .explosion {
+            position: absolute;
             font-size: 5rem;
             opacity: 0;
+            z-index: 1002;
+            animation: explode 0.5s forwards;
         }
         .fire {
             position: absolute;
@@ -99,26 +108,50 @@
         .launch-button {
             padding: 1rem 2rem;
             font-size: 1.2rem;
-            background: linear-gradient(45deg, #ff4d4d, #ff9933);
+            background: linear-gradient(45deg, #ff0000, #ff4d4d);
             border: none;
-            border-radius: 25px;
+            border-radius: 5px;
             color: white;
             cursor: pointer;
             margin-top: 2rem;
-            transition: transform 0.3s;
+            transition: all 0.3s;
             z-index: 100;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 2px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
         }
         .launch-button:hover {
-            transform: scale(1.1);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
         }
-        @keyframes launch {
+        .launch-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+        .launch-button:hover:before {
+            left: 100%;
+        }
+        @keyframes explode {
             0% {
-                transform: translateX(-50%) translateY(0);
+                transform: scale(0.5);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
                 opacity: 1;
             }
             100% {
-                transform: translateX(-50%) translateY(-100vh);
-                opacity: 1;
+                transform: scale(2);
+                opacity: 0;
             }
         }
         @keyframes fire-animation {
@@ -131,9 +164,23 @@
                 opacity: 1;
             }
         }
-        .launching .rocket {
-            animation: launch 3s forwards;
+        
+        @keyframes shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-5px, -5px) rotate(-1deg); }
+            20% { transform: translate(5px, -5px) rotate(1deg); }
+            30% { transform: translate(-5px, 5px) rotate(0deg); }
+            40% { transform: translate(5px, 5px) rotate(1deg); }
+            50% { transform: translate(-5px, -5px) rotate(-1deg); }
+            60% { transform: translate(5px, -5px) rotate(0deg); }
+            70% { transform: translate(-5px, 5px) rotate(-1deg); }
+            80% { transform: translate(-5px, -5px) rotate(1deg); }
+            90% { transform: translate(5px, -5px) rotate(0deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        .missile.active {
             opacity: 1;
+            filter: drop-shadow(0 0 10px red);
         }
         .launching .fire {
             animation: fire-animation 0.1s infinite alternate;
@@ -144,14 +191,14 @@
             font-size: 1.2rem;
             color: #ccc;
         }
-        .rockets-gallery {
-            margin-top: 3rem;
+        .missiles-gallery {
+            margin-top: 1rem;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            padding: 2rem;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
         }
-        .rocket-card {
+        .missile-card {
             background: rgba(255,255,255,0.1);
             border-radius: 15px;
             padding: 1.5rem;
@@ -159,22 +206,52 @@
             backdrop-filter: blur(5px);
             transition: transform 0.3s;
             cursor: pointer;
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.2);
+            position: relative;
+            overflow: hidden;
         }
-        .rocket-card:hover {
+        .missile-card:hover {
             transform: translateY(-10px);
+            box-shadow: 0 0 25px rgba(255, 77, 77, 0.4);
         }
-        .rocket-card img {
-            width: 100%;
-            height: 250px;
-            object-fit: cover;
+        
+        .missile-image-container {
+            position: relative;
+            overflow: hidden;
             border-radius: 10px;
-            margin-bottom: 1rem;
-        }
-        .rocket-card h3 {
-            color: #ff9933;
             margin-bottom: 0.5rem;
         }
-        .rocket-card p {
+        
+        .launch-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .missile-image-container:hover .launch-overlay {
+            opacity: 1;
+        }
+        .missile-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+        }
+        .missile-card h3 {
+            color: #ff4d4d;
+            margin-bottom: 0.5rem;
+        }
+        .missile-card p {
             color: #ccc;
             font-size: 0.9rem;
         }
@@ -208,49 +285,72 @@
         <div class="music-icon">🎵</div>
     </div>
 
-    <!-- 保留原有的火箭音效 -->
+    <!-- 导弹发射音效 -->
     <audio id="rocketSound" preload="auto">
+        <source src="audio/rocket-launch.mp3" type="audio/mpeg">
+    </audio>
+    
+    <!-- 爆炸音效 -->
+    <audio id="explosionSound" preload="auto">
         <source src="audio/whoosh.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 背景音乐 -->
+    <audio id="bgMusic" loop preload="auto">
+        <source src="audio/background.mp3" type="audio/mpeg">
     </audio>
 
     <div class="container">
       <div class="intro">
           <h2>关于我</h2>
           <div class="student-info">
-              <p>大家好！我是 GXT，一名热爱火箭的小学生。</p>
-              <p>我对太空和火箭充满好奇，希望通过这个网站和大家分享我的兴趣！</p>
+              <p>大家好！我是 GXT，一名热爱导弹技术的小学生。</p>
+              <p>我对军事科技和导弹系统充满好奇，希望通过这个网站和大家分享我的兴趣！</p>
           </div>
       </div>
 
-      <div class="rockets-gallery">
-          <div class="rocket-card">
-              <img src="images/1.png" alt="乐高火箭模型1">
-              <h3>乐高火箭模型1</h3>
-              <p>这是我用乐高搭建的火箭模型，灵感来自真实的火箭设计。</p>
+      <div class="missiles-gallery">
+          <div class="missile-card" data-missile-type="strategic" onclick="launchMissile('strategic')">
+              <div class="missile-image-container">
+                  <img src="images/1.png" alt="战略导弹模型1">
+                  <div class="launch-overlay">
+                      <button class="launch-button">发射导弹</button>
+                  </div>
+              </div>
+              <h3>战略导弹模型1</h3>
+              <p>这是我收集的战略导弹模型，展示了精确制导系统。</p>
           </div>
           
-          <div class="rocket-card">
-              <img src="images/2.png" alt="乐高火箭模型2">
-              <h3>乐高火箭模型2</h3>
-              <p>这是我设计的另一个乐高火箭模型，展示了更多的细节和创意。</p>
+          <div class="missile-card" data-missile-type="cruise" onclick="launchMissile('cruise')">
+              <div class="missile-image-container">
+                  <img src="images/2.png" alt="巡航导弹模型">
+                  <div class="launch-overlay">
+                      <button class="launch-button">发射导弹</button>
+                  </div>
+              </div>
+              <h3>巡航导弹模型</h3>
+              <p>这是我设计的巡航导弹模型，具有低空飞行能力。</p>
           </div>
           
-          <div class="rocket-card">
-              <img src="images/3.png" alt="乐高火箭模型3">
-              <h3>乐高火箭模型3</h3>
-              <p>这是我最新完成的乐高火箭模型，融合了现代科技和经典设计。</p>
+          <div class="missile-card" data-missile-type="antiair" onclick="launchMissile('antiair')">
+              <div class="missile-image-container">
+                  <img src="images/3.png" alt="防空导弹系统">
+                  <div class="launch-overlay">
+                      <button class="launch-button">发射导弹</button>
+                  </div>
+              </div>
+              <h3>防空导弹系统</h3>
+              <p>这是我最新完成的防空导弹系统模型。</p>
           </div>
       </div>
   </div>
 
   <div class="header">
-      <h1>欢迎来到 GXT 的火箭世界</h1>
-      <button class="launch-button" onclick="launchRocket()">发射火箭！</button>
-      <div class="rocket-container">
-          <div class="rocket">🚀</div>
-          <div class="fire"></div>
-      </div>
+      <h1>欢迎来到 GXT 的导弹世界</h1>
+      <p>选择上方的导弹模型进行发射模拟</p>
   </div>
+  
+  <div class="missile-container" id="missileContainer"></div>
 
     <script>
         // 创建星星背景
@@ -266,31 +366,233 @@
             }
         }
 
-        // 发射火箭
-        function launchRocket() {
-            const rocketContainer = document.querySelector('.rocket-container');
-            const rocketSound = document.getElementById('rocketSound');
+        // 全局变量
+        let missileActive = false;
+        let mouseX = 0;
+        let mouseY = 0;
+        let missileElement = null;
+        let missileX = 0;
+        let missileY = 0;
+        let missileAngle = 0;
+        let animationFrameId = null;
+        let lastMouseX = 0; // 记录上一帧鼠标X位置
+        let lastMouseY = 0; // 记录上一帧鼠标Y位置
+        
+        // 监听鼠标移动
+        document.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
             
-            if (!rocketContainer.classList.contains('launching')) {
-                rocketContainer.classList.add('launching');
+            // 如果导弹活动中，直接更新导弹位置
+            if (missileActive && missileElement) {
+                missileElement.style.left = (mouseX - 15) + 'px';
+                missileElement.style.top = (mouseY - 15) + 'px';
                 
-                // 播放音效
-                rocketSound.currentTime = 0;
-                rocketSound.volume = 0.8; // 调高一点音量
-                
-                try {
-                    rocketSound.play().catch(function(error) {
-                        console.log("播放火箭音效失败:", error);
-                    });
-                } catch (e) {
-                    console.log("播放音效出错:", e);
+                // 计算旋转角度
+                if (lastMouseX !== 0 && lastMouseY !== 0) {
+                    const dx = mouseX - lastMouseX;
+                    const dy = mouseY - lastMouseY;
+                    if (Math.abs(dx) > 1 || Math.abs(dy) > 1) { // 防止微小移动引起旋转
+                        missileAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+                        missileElement.style.transform = `rotate(${missileAngle}deg)`;
+                    }
                 }
                 
-                // 3秒后重置动画
-                setTimeout(() => {
-                    rocketContainer.classList.remove('launching');
-                }, 3000);
+                lastMouseX = mouseX;
+                lastMouseY = mouseY;
             }
+        });
+        
+        // 发射导弹函数 - 跳转到发射页面
+        function launchMissile(missileType) {
+            console.log('准备发射导弹类型:', missileType);
+            
+            // 获取导弹图片路径
+            let imagePath = '';
+            
+            // 根据导弹类型获取对应的图片路径
+            switch(missileType) {
+                case 'strategic':
+                    imagePath = 'images/1.png';
+                    break;
+                case 'cruise':
+                    imagePath = 'images/2.png';
+                    break;
+                case 'antiair':
+                    imagePath = 'images/3.png';
+                    break;
+                default:
+                    imagePath = `images/${missileType}.png`;
+            }
+            
+            // 将导弹类型和图片路径存储到 localStorage
+            localStorage.setItem('selectedMissileType', missileType);
+            localStorage.setItem('missileImagePath', imagePath);
+            
+            // 跳转到发射页面并自动启动发射，同时传递图片路径
+            window.location.href = `missile-launch.html?autolaunch=true&img=${encodeURIComponent(imagePath)}`;
+        }
+        
+        // 旧的发射导弹函数 - 保留供参考
+        function launchRocket() {
+            console.log('尝试发射导弹');
+            // 如果已有活动导弹，先移除它
+            if (missileActive && missileElement && missileElement.parentNode) {
+                missileElement.parentNode.removeChild(missileElement);
+                missileElement = null;
+            }
+            
+            const missileContainer = document.querySelector('.missile-container');
+            const rocketSound = document.getElementById('rocketSound');
+            
+            // 创建新的导弹元素
+            missileElement = document.createElement('div');
+            missileElement.className = 'missile active';
+            missileElement.innerHTML = '💥'; // 使用爆炸图标作为导弹
+            missileContainer.appendChild(missileElement);
+            console.log('导弹已创建');
+            
+            // 初始位置直接设置为鼠标位置
+            missileX = mouseX;
+            missileY = mouseY;
+            missileElement.style.left = (missileX - 15) + 'px'; // 调整位置使其居中
+            missileElement.style.top = (missileY - 15) + 'px';
+            console.log('导弹初始位置:', missileX, missileY);
+            
+            // 播放音效
+            rocketSound.currentTime = 0;
+            rocketSound.volume = 0.8;
+            
+            try {
+                rocketSound.play().catch(function(error) {
+                    console.log("播放导弹音效失败:", error);
+                });
+            } catch (e) {
+                console.log("播放音效出错:", e);
+            }
+            
+            // 添加震动效果
+            document.body.style.animation = 'shake 0.5s';
+            document.body.style.animationIterationCount = '2';
+            
+            setTimeout(() => {
+                document.body.style.animation = '';
+            }, 1000);
+            
+            missileActive = true;
+            
+            // 开始导弹追踪动画
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            animateMissile();
+        }
+        
+        // 导弹动画
+        function animateMissile() {
+            if (!missileActive || !missileElement) return;
+            
+            // 计算导弹与鼠标之间的距离和角度
+            const dx = mouseX - missileX;
+            const dy = mouseY - missileY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const targetAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            // 平滑旋转导弹
+            const angleDiff = targetAngle - missileAngle;
+            missileAngle += angleDiff * 0.1;
+            
+            // 直接更新导弹位置为鼠标位置
+            missileX = mouseX;
+            missileY = mouseY;
+            
+            // 应用位置和旋转 - 精确跟随鼠标
+            missileElement.style.left = (mouseX - 15) + 'px'; // 直接跟随鼠标位置，偏移量为图标大小的一半
+            missileElement.style.top = (mouseY - 15) + 'px';
+            missileElement.style.transform = `rotate(${missileAngle}deg)`;
+            
+            // 检测是否接近边界
+            const margin = 50; // 增加边距，使导弹在达到边界前停止
+            
+            // 限制导弹位置，不允许超出边界
+            let hitBoundary = false;
+            let explosionX = missileX;
+            let explosionY = missileY;
+            
+            // 检查左边界
+            if (missileX < margin) {
+                explosionX = margin;
+                hitBoundary = true;
+            }
+            // 检查右边界
+            else if (missileX > window.innerWidth - margin) {
+                explosionX = window.innerWidth - margin;
+                hitBoundary = true;
+            }
+            
+            // 检查上边界
+            if (missileY < margin) {
+                explosionY = margin;
+                hitBoundary = true;
+            }
+            // 检查下边界
+            else if (missileY > window.innerHeight - margin) {
+                explosionY = window.innerHeight - margin;
+                hitBoundary = true;
+            }
+            
+            if (hitBoundary) {
+                // 在边界处触发爆炸效果
+                createExplosion(explosionX, explosionY);
+                
+                // 停止导弹移动，但不移除导弹
+                missileActive = false;
+                
+                // 在爆炸后使导弹隐藏
+                if (missileElement) {
+                    missileElement.style.opacity = '0';
+                }
+                return;
+            }
+            
+            // 继续动画循环
+            animationFrameId = requestAnimationFrame(animateMissile);
+        }
+        
+        // 创建爆炸效果
+        function createExplosion(x, y) {
+            const missileContainer = document.querySelector('.missile-container');
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.textContent = '💥';
+            explosion.style.left = (x - 40) + 'px'; // 调整爆炸位置使其居中
+            explosion.style.top = (y - 40) + 'px';
+            missileContainer.appendChild(explosion);
+            
+            // 播放爆炸音效
+            const explosionSound = document.getElementById('explosionSound');
+            explosionSound.currentTime = 0;
+            explosionSound.volume = 1.0;
+            
+            try {
+                explosionSound.play().catch(function(error) {
+                    console.log("播放爆炸音效失败:", error);
+                });
+            } catch (e) {
+                console.log("播放音效出错:", e);
+            }
+            
+            // 添加强烈震动效果
+            document.body.style.animation = 'shake 0.3s';
+            document.body.style.animationIterationCount = '5';
+            
+            setTimeout(() => {
+                document.body.style.animation = '';
+                // 移除爆炸元素
+                if (explosion && explosion.parentNode) {
+                    explosion.parentNode.removeChild(explosion);
+                }
+            }, 1000);
         }
 
         // 添加音乐控制功能
